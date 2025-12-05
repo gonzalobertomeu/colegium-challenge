@@ -49,8 +49,8 @@ class Retiros
   /**
   * Entrypoint
   */
-  public static function main() {
-    $result = (object) [];
+  public static function main($tutorId) {
+    $result = (object) DB::tutores()->get($tutorId);
     /**
     * Tu codigo aquí
     */
@@ -61,7 +61,7 @@ class Retiros
   * (opcional) Métodos auxiliares
   */
 }
-Retiros::main();
+Retiros::main('d');
 
 
 
@@ -192,7 +192,7 @@ class DB_result
     $element = array_filter($this->data, function($element) use($id) {
       return $element->id == $id;
     });
-    if (count($element != 1)) {
+    if (count($element) != 1) {
       throw new Exception("Element not found");
     }
     return $element[0];
