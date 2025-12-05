@@ -50,18 +50,60 @@ class Retiros
   * Entrypoint
   */
   public static function main($tutorId) {
-    $result = (object) DB::tutores()->get($tutorId);
-    /**
-    * Tu codigo aquí
-    */
-    var_dump($result);
+    $tutorEstudiantes = DB::tutores_estudiantes()
+      ->filter('tutor_id',$tutorId)
+      ->result();
+
+    
+    $estudiantes = DB::estudiantes()->result();
+    $mapEstudiantes = [];
+    foreach ($estudiantes as $e) {
+      $mapEstudiantes[$e->id] = $e;
+    }
+    
+    $mapTutorEstudiante = [];
+    foreach ($tutorEstudiantes as $te) {
+      $mapTutorEstudiante[$te->estudiante_id] = $mapEstudiantes[$te->estudiante_id];
+    }
+
+    $retiros = DB::retiros()->result();
+    $mapRetiros = [];
+    foreach ($retiros as $r) {
+      $mapRetiros[$r->id] = $r;
+    }
+
+    $retirosEstudiantes = DB::retiros_estudiantes()->result();
+    $mapRetirosEstudiantes = [];
+    foreach ($retirosEstudiantes as $re) {
+      $mapRetirosEstudiantes[$re->estudiante_id][] = $mapRetiros[$re->retiro_id];
+    }
+
+    $result = [];
+    foreach ($mapTutorEstudiante as $estId => $estudiante) {
+      $result[$estId] = [
+        'estudiante' => $mapEstudiantes[$estId],
+        'retiros' => $mapRetirosEstudiantes[$estId] ?? [],
+      ];
+    }
+
+    return $result;
   }
 
+  public static function bootstrap($tutorId) {
+    header('Content-Type: application/json');
+    $start = microtime(true);
+    $result = Retiros::main($tutorId);
+    $end = microtime(true);
+    echo json_encode([
+      'result' => $result,
+      'elapsed_time' => $end - $start
+    ]);
+  }
   /**
   * (opcional) Métodos auxiliares
   */
 }
-Retiros::main('d');
+Retiros::bootstrap('e');
 
 
 
@@ -164,7 +206,7 @@ class DB
       (object) [
         'id' => 'm',
         'retiro_id' => 'j',
-        'estudiante_id' => 'b'
+        'estudiante_id' => 'a'
       ],
       (object) [
         'id' => 'n',
